@@ -1,10 +1,12 @@
 // Bulls and Cows Solution Minimax Algortihm
 // Created by Arsenii Zakharenko
+// Compiling: gcc -lm -o "name" bnc_minimax.c
 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #define NUM_LEN 4 // Basic game is played with 4 digit numbers
 #define MAX_NUMS 5040 // Amount of numbers with unique digits for given NUM_LEN
@@ -25,21 +27,11 @@ typedef struct
 
 
 
-// Used for some calculations
-int power(int base, int exp) {
-    int result = 1;
-    for (int i = 0; i < exp; i++) {
-        result *= base;
-    }
-    return result;
-}
-
-
 // Checks if given number consists only of unique digits
 int is_unique(char* num){
     for (int i = 0; i < NUM_LEN; i++){
         for (int j = i + 1; j < NUM_LEN; j++){
-            if (num[i] == num[j] && i != j){
+            if (num[i] == num[j]){
                 return 0;
             }
         }
@@ -51,6 +43,7 @@ int is_unique(char* num){
 
 
 // Generates set of all possible numbers with unique digits
+// TODO increase effectivity
 num_set all_unique_nums() {
     num_set set;
     set.count = MAX_NUMS;
@@ -59,9 +52,9 @@ num_set all_unique_nums() {
     char num[NUM_LEN + 1];  
     num[NUM_LEN] = '\0';  
 
-    for (long i = 0; i < power(10, NUM_LEN); i++) {
+    for (long i = 0; i < (int) pow(10, NUM_LEN); i++) {
         for (int j = 0; j < NUM_LEN; j++) {
-            num[j] = '0' + (i / power(10, NUM_LEN - 1 - j)) % 10;
+            num[j] = '0' + (i / (int) pow(10, NUM_LEN - 1 - j)) % 10;
         }
         if (is_unique(num)){
             strcpy(set.numbers[index++], num);
@@ -121,7 +114,6 @@ char* best_num(num_set set){
     return best_num;
 }
 
-
 int main(){
     // Starting with all possible numbers
     num_set set = all_unique_nums();
@@ -132,33 +124,29 @@ int main(){
         // Try to guess number using minimax algorithm
         // More simple version -> just take random
         char *guess = best_num(set);
-        printf("Attmept %d: %s\n", ++attempts, guess);
+        printf("Attempt %d: %s\n", ++attempts, guess);
         
-        // Get feedback and check if finished
+        // Get feedback and check if guessed 
         guess_res result;
         printf("How many bulls: ");
         scanf("%d", &result.bulls); 
         printf("How many cows: ");
         scanf("%d", &result.cows);
+        printf("*************************************************\n"); 
         if (result.bulls == 4) {
-            printf("Number guessed in %d attempts!", attempts);
+            printf("Number guessed in %d attempts!\n", attempts);
             break;
         }
 
         // Delete numbers that are obviously not right
-        num_set new_set;
-        new_set.count = 0;
-        for (int i = 0; i < set.count; i++)
-        {
+        int new_count = 0;
+        for (int i = 0; i < set.count; i++) {
             guess_res new_res = res(set.numbers[i], guess);
             if (new_res.bulls == result.bulls && new_res.cows == result.cows) {
-                strcpy(new_set.numbers[new_set.count++], set.numbers[i]);
+                strcpy(set.numbers[new_count++], set.numbers[i]);
             }
         }
-        set = new_set;    
-        printf("*************************************************\n");    
+        set.count = new_count;   
     }
-
-
 
 }
